@@ -1,0 +1,29 @@
+# Super easy to update code in a running pod (원래 이미지 빌드 푸쉬 rollout해야되는데)
+apiVersion: skaffold/v2alpha3
+kind: Config
+deploy:
+  kubectl:
+    manifests: 
+    # watch the yaml file and if there are changes reapply the script to k8s
+    # 만약 skaffold가 꺼지면 이 관련된 object 다 날려줌(2~3가지 프로젝트 동시에 하기 용이해짐)
+      - ./infra/k8s/* 
+      - ./infra/k8s-dev/*
+build:
+  local: #docker hub에 푸쉬를 할것인가 안할 것인가 선택함.
+  # 디폴트는 푸쉬하는거라 꺼줌
+    push: false
+  artifacts:
+    - image: livfarm/iot-backend
+      context: iot-backend # planters라는 디렉토리
+      docker:
+        dockerfile: Dockerfile
+      sync: # 바로 싱크해 버린다. not rebuilding
+        manual: # copy directly to pod
+        # 컨테이너에 변경된 코드 넘겨도 안에서 노드몬 같은얘가 보고 있어서 변경사항 해줘야함 
+          - src: "src/**/*.ts" #skaffold to watch 
+            dest: . # destination
+            # 만약 src/**/*.ts 가 아닌 다른게 바뀐다면(ex package.json or node_modules) -> 다시 그냥 이미지를 새로 빌드함
+    - image: livfarm/pixel
+      context: pixel # planters라는 디렉토리
+      docker:
+        dockerfile: Dockerfile
