@@ -1,0 +1,13 @@
+name: tests-iot-backend
+
+on:
+  pull_request:
+    paths:
+      - 'iot-backend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd iot-backend && npm i && npm run test
