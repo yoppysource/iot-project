@@ -32,7 +32,6 @@
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/schedule": "^1.0.2",
     "@types/cookie-session": "^2.0.43",
-    "@types/python-shell": "^1.0.3",
     "@types/sharp": "^0.29.5",
     "axios": "^0.24.0",
     "class-transformer": "^0.5.1",
