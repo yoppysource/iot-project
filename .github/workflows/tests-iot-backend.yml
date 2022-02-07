@@ -1,5 +1,5 @@
 name: tests-iot-backend
-
+# if add new file, it can execute the tests as parallel
 on:
   pull_request:
     paths:

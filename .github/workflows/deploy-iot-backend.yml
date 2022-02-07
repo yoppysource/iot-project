@@ -1,0 +1,20 @@
+name: depoly-iot-backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'iot-backend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd iot-backend && docker -t livfarm/iot-backend .
+      - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        env:
+          DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}} 
+      - run: docker push livfarm/iot-backend
