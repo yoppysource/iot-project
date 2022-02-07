@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'iot-backend/**'
+      - 'infra/**'
 
 jobs:
   build:
@@ -13,14 +13,8 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v2
-      - run: cd iot-backend && docker build -t livfarm/iot-backend .
-      - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-        env:
-          DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
-          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}} 
-      - run: docker push livfarm/iot-backend
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{secrets.DIGITALOCEAN_ACCESS_TOKEN}}
       - run: doctl kubernetes cluster kubeconfig save livfarm
-      - run: kubectl rollout restart deployment iot-backend-depl
+      - run: kubectl apply -f infra/k8s && kubectl apply -f infra/k8s-prod
