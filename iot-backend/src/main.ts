@@ -27,12 +27,12 @@ async function bootstrap() {
       },
     },
   });
+
   await app.startAllMicroservices();
 
   app.enableVersioning({
     type: VersioningType.URI,
   });
-
   app.setGlobalPrefix("api/v1"); //edit your prefix as per your requirements!
 
   await app.listen(3000);
