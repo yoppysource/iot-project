@@ -1,4 +1,4 @@
-name: depoly-iot-backend
+name: depoly-manifests
 
 on:
   push:
