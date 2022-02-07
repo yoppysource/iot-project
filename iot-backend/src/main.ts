@@ -28,6 +28,7 @@ async function bootstrap() {
     },
   });
   await app.startAllMicroservices();
+
   app.enableVersioning({
     type: VersioningType.URI,
   });
