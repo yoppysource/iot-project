@@ -17,7 +17,6 @@ def getPixel(url):
     hsv = cv.cvtColor(blurred_frame, cv.COLOR_BGR2HSV)
     # Green color Range
     # This is value for conditional setting for current environment
-
     # Set lower range [H, S, V]
     lower_green = np.array([30, 35, 50])
     # Set upper range
