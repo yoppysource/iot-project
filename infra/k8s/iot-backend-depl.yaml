@@ -1,0 +1,96 @@
+apiVersion: apps/v1 # pool of objects we want to draw
+kind: Deployment # the type of object we want to create
+# Deployment -> 여러개의 pod를 가지고 있는 object(pods의 매니저의 개념)
+# 1. 가지고있는 pod가 없어지면 자동으로 다시 생성한다
+# 2. new version container 나오면 다시 pods 재생성
+metadata: # options for object
+  name: iot-backend-depl  # set name of object (logging)
+spec: # specification of attributes of object
+  replicas: 1 # number of pods 
+  selector: # take a look all the pods and select match pod that match labels as "planters"
+    matchLabels:
+      app: iot-backend # 그냥 asdas:sda 도 무관
+  template: # selector랑 조합해서 레이블 맞는거 찾음
+    metadata:
+      labels:
+        app: iot-backend
+    spec: # pod how to behave
+      containers:
+        - name: iot-backend # only logging purpose
+          # image: us.gcr.io/fair-gist-315605/auth
+          image: livfarm/iot-backend #버전넘버 안붙히면 :latest로 생각 -> kube가 dockerhub가서 찾는다
+          env:
+            - name: DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: database-mongo
+                  key: DATABASE
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-mongo-password
+                  key: DATABASE_PASSWORD
+            - name: COOKIE_KEY
+              valueFrom: 
+                secretKeyRef:
+                  name: cookie-key
+                  key: COOKIE_KEY
+            - name: KAFKA_BROKER
+              valueFrom: 
+                secretKeyRef:
+                  name: kafka-broker
+                  key: KAFKA_BROKER
+            - name: KAFKA_API_KEY
+              valueFrom: 
+                secretKeyRef:
+                  name: kafka-api-key
+                  key: KAFKA_API_KEY
+            - name: KAFKA_API_SECRET
+              valueFrom: 
+                secretKeyRef:
+                  name: kafka-api-secret
+                  key: KAFKA_API_SECRET
+            - name: GCS_BUCKET
+              valueFrom: 
+                secretKeyRef:
+                  name: gcs-bucket-image
+                  key: GCS_BUCKET
+            - name: GCLOUD_PROJECT
+              valueFrom: 
+                secretKeyRef:
+                  name: gcloud-project
+                  key: GCLOUD_PROJECT
+            - name: GCLOUD_CLIENT_EMAIL
+              valueFrom: 
+                secretKeyRef:
+                  name: gcloud-client-email
+                  key: GCLOUD_CLIENT_EMAIL
+            - name: GCLOUD_PRIVATE_KEY
+              valueFrom: 
+                secretKeyRef:
+                  name: gcloud-private-key
+                  key: GCLOUD_PRIVATE_KEY
+#  ClusterIP 로 pods끼리 소통하기
+# http://planters-clusterip-srv:3000 으로 다른 pod 파일 에서 req 보내면 받을 수 있다.
+# + 만약에 변경 사항 생겼을 때, docker image 만들고 -> push ->  k rollout restart deployment planters-depl
+# 하면 update 가능
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iot-backend-srv
+# 만약 다른곳에서 같은 이름쓰이면 둘중 하나만 됨
+spec:
+  type: ClusterIP # 안 넣어도 디폴트로 클러스터 IP 생성
+  selector: #how to find set of pods to access
+    app: iot-backend
+  ports:
+    - name: iot-backend
+      protocol: TCP
+      port: 3000 # 보통 두개 같게 하면됨
+      targetPort: 3000
+# Types of Service
+# 1. Cluster IP -> Only exposes pods in the cluster
+# 2. Node port -> Makes a pod accessible from outside the cluster, only dev purpose
+# 3. Load Balancer -> //, The is the right way to expose a pod to the outside world
+# 4. External Name -> redirects an in-cluster request to a CNAME url 

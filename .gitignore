@@ -3,7 +3,6 @@
 # compiled output
 dist
 node_modules
-/infra
 # Logs
 logs
 *.log
@@ -37,3 +36,6 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 *.http
+*.sh
+
+gcloud-private-key.txt

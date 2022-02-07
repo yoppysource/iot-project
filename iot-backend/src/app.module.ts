@@ -25,7 +25,7 @@ import { LoggerMiddleware } from './middlewares/logger.middleware';
           uri: configService
             .get<string>('DATABASE')
             .replace(
-              '<PASSWORD>',
+              'PASSWORD',
               configService.get<string>('DATABASE_PASSWORD'),
             ),
         };

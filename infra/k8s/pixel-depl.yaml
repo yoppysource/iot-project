@@ -1,0 +1,39 @@
+apiVersion: apps/v1 # pool of objects we want to draw
+kind: Deployment # the type of object we want to create
+# Deployment -> 여러개의 pod를 가지고 있는 object(pods의 매니저의 개념)
+# 1. 가지고있는 pod가 없어지면 자동으로 다시 생성한다
+# 2. new version container 나오면 다시 pods 재생성
+metadata: # options for object
+  name: pixel-depl  # set name of object (logging)
+spec: # specification of attributes of object
+  replicas: 1 # number of pods 
+  selector: # take a look all the pods and select match pod that match labels as "planters"
+    matchLabels:
+      app: pixel # 그냥 asdas:sda 도 무관
+  template: # selector랑 조합해서 레이블 맞는거 찾음
+    metadata:
+      labels:
+        app: pixel
+    spec: # pod how to behave
+      containers:
+        - name: pixel # only logging purpose
+          # image: us.gcr.io/fair-gist-315605/auth
+          image: livfarm/pixel #버전넘버 안붙히면 :latest로 생각 -> kube가 dockerhub가서 찾는다
+          env:
+            - name: GROUP_ID
+              value: 'python-group-client'
+            - name: KAFKA_BROKER
+              valueFrom: 
+                secretKeyRef:
+                  name: kafka-broker
+                  key: KAFKA_BROKER
+            - name: KAFKA_API_KEY
+              valueFrom: 
+                secretKeyRef:
+                  name: kafka-api-key
+                  key: KAFKA_API_KEY
+            - name: KAFKA_API_SECRET
+              valueFrom: 
+                secretKeyRef:
+                  name: kafka-api-secret
+                  key: KAFKA_API_SECRET

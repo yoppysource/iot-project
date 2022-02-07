@@ -1,0 +1,24 @@
+# 시작하기전 ingress-nginx를 설치해주자
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-srv
+  annotations: # ingress controller에게 routing rule 전달한다고 알려주기위한 용도
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+# 나중에 hosting 여러개도 도전해보자, dashboard, livfarm 공식 홈페이지...
+spec:
+  rules:
+  # specific domain을 호스트로 정해야함
+  # 그래서 local machine을 세팅해야됨
+  # /etc/hosts로 들어가서 바인딩 해주면
+    - host: livfarm.dev
+      http:
+        paths:
+          - path: /api/v1/?(.*) # Catch ALL 위에서 api path가 아니면 내려오면서 매칭함 그래서 항상 path범위가 좁은걸 위에 둘 것!
+            pathType: Prefix
+            backend:
+              service:
+                name: iot-backend-srv
+                port:
+                  number: 3000
