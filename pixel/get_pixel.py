@@ -31,7 +31,7 @@ def getPixel(url):
         area1 = cv.contourArea(c)
         # 3000 픽셀 이하는 무시
         # 정식된 시기 인지해서 area 동적으로 바꿀 수 있게
-        if area1 > 3000:
+        if area1 > 10000:
             cv.drawContours(blurred_frame, [c], -1, (255, 0, 0), 3)
             M = cv.moments(c)
             cx = int(M["m10"]/M["m00"])

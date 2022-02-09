@@ -124,7 +124,7 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
           width: 600,
           height: 600,
         }).resize().toBuffer();
-        const imageUrl = await this.storageService.upload('images', {
+        const imageUrl = await this.storageService.upload(process.env.GCS_BUCKET_PATH, {
           name: imageName,
           buffer: resized
         });

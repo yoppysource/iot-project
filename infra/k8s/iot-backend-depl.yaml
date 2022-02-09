@@ -55,6 +55,11 @@ spec: # specification of attributes of object
                 secretKeyRef:
                   name: gcs-bucket-image
                   key: GCS_BUCKET
+            - name: GCS_BUCKET_PATH
+              valueFrom: 
+                secretKeyRef:
+                  name: gcs-bucket-path
+                  key: GCS_BUCKET_PATH
             - name: GCLOUD_PROJECT
               valueFrom: 
                 secretKeyRef:
