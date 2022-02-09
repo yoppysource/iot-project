@@ -45,7 +45,7 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
 
 
 
-  @Cron('0 */5 * * * *')
+  @Cron('* 5 * * * *')
   async createSnapshotsPeriodically() {
     this.logger.debug('Call create Snapshot every 1 hours');
     const plantersIncludeCam = (await this.planterModel.find({})).filter(
