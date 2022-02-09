@@ -11,6 +11,7 @@ spec:
   tls:
   - hosts:
     - livfarm.com
+    - www.livfarm.com
     secretName: livfarm-tls
   rules:
     - host: livfarm.com
