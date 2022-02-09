@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: landing-page-depl  
+spec: 
+  replicas: 1  
+  selector: 
+    matchLabels:
+      app: landing-page
+  template:
+    metadata:
+      labels:
+        app: landing-page
+    spec: 
+      containers:
+        - name: landing-page
+          image: livfarm/landing-page
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: landing-page-srv
+# 만약 다른곳에서 같은 이름쓰이면 둘중 하나만 됨
+spec:
+  type: ClusterIP # 안 넣어도 디폴트로 클러스터 IP 생성
+  selector: #how to find set of pods to access
+    app: landing-page
+  ports:
+    - name: landing-page
+      protocol: TCP
+      port: 3000 # 외부에서 접근하는 포트
+      targetPort: 80 # container 내부에서의 접근
