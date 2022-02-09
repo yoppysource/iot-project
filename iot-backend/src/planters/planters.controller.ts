@@ -33,8 +33,7 @@ export class PlantersController {
   //initalize planter
   @Post()
   initializePlanter(@Body() body: InitializePlanterDTO) {
-    this.logger.debug('Planter is initialted with data' + body);
-
+    this.logger.debug(body.planterId + " initialized!");
     return this.plantersService.createOrUpdate(body);
   }
 
@@ -45,7 +44,6 @@ export class PlantersController {
     @Body() body: InitializeCameraDTO,
   ) {
     this.logger.debug('Camera is initialted: ' + cameraId);
-
     return this.plantersService.createOrUpdateCamera(planterId, cameraId, body);
   }
 

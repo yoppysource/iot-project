@@ -85,8 +85,9 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
   }
 
   async createSnapshot(planter: Planter) {
+    let res: AxiosResponse;
     try {
-      const res: AxiosResponse = await lastValueFrom(
+      res = await lastValueFrom(
         this.httpService.get(planter.getUrl(['current'])),
       );
 
@@ -97,8 +98,14 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
         }
         return;
       }
-
-      for (const cam of planter.cameras) {
+    } catch (error) {
+      if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
+        this.failedPlanterList.push(planter);
+      }
+      return this.logger.debug(planter.planterId + error);
+    }
+    for (const cam of planter.cameras) {
+      try {
         const snapshot = new this.snapshotModel();
         Object.assign(snapshot, res.data);
         snapshot.planterId = planter.planterId;
@@ -133,12 +140,12 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
         this.client.emit(Topics.ImageCreated, new ImageCreatedEvent(imageUrl, snapshot.id));
         // This is code for remove failed planter if  success
         this.failedPlanterList = this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId !== planter.planterId);
+      } catch (error) {
+        if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
+          this.failedPlanterList.push(planter);
+        }
+        this.logger.debug(cam.cameraId + error);
       }
-    } catch (error) {
-      if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
-        this.failedPlanterList.push(planter);
-      }
-      this.logger.debug(error);
     }
   }
   async updateSnapshotWhenCalculated(imageCalculatedEvent: ImageCalculatedEvent) {
