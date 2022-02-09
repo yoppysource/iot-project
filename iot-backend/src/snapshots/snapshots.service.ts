@@ -91,6 +91,10 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
     );
 
     if (res.status != 200) {
+      this.logger.debug(`This connection of planter failed: ${planter.planterId}`);
+      if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
+        this.failedPlanterList.push(planter);
+      }
       return;
     }
 
@@ -104,7 +108,6 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
       const imageName = `${cam.cameraId}_${current.getTime()}.jpeg`;
       snapshot.cameraId = cam.cameraId;
       if (cam.plantId) snapshot.plantId = cam.plantId;
-
       if (cam.transferredAt) snapshot.transferredAt = cam.transferredAt;
       try {
         const response: AxiosResponse = await this.httpService.axiosRef({
@@ -112,8 +115,8 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
           method: 'GET',
           responseType: 'arraybuffer',
           timeout: 1500,
+        });
 
-        })
         const buffer = Buffer.from(response.data, "utf-8");
         const resized = await sharp(buffer).extract({
           left: 100,
@@ -125,7 +128,6 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
           name: imageName,
           buffer: resized
         });
-        console.log(imageUrl);
         snapshot.imageUrl = imageUrl;
         await snapshot.save();
         this.client.emit(Topics.ImageCreated, new ImageCreatedEvent(imageUrl, snapshot.id));
@@ -141,11 +143,14 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
   }
   async updateSnapshotWhenCalculated(imageCalculatedEvent: ImageCalculatedEvent) {
     if (imageCalculatedEvent.pixel === -1) {
-      return await this.snapshotModel.findByIdAndDelete(imageCalculatedEvent.snapshotId);
+
+      const snapshot = await this.snapshotModel.findByIdAndDelete(imageCalculatedEvent.snapshotId);
+      return this.logger.debug(`Snapshot Deleted! \n for: ${snapshot.cameraId}`);
     }
-    this.logger.debug('Num of pixel is' + imageCalculatedEvent.pixel);
     const snapshot = await this.snapshotModel.findByIdAndUpdate(imageCalculatedEvent.snapshotId, {
       numOfPixel: imageCalculatedEvent.pixel
     });
+    this.logger.debug(`Num of pixel is: ${imageCalculatedEvent.pixel}\n for: ${snapshot.cameraId}`);
+
   }
 }
