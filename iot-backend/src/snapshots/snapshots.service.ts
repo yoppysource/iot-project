@@ -129,13 +129,11 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
         snapshot.imageUrl = imageUrl;
         await snapshot.save();
         this.client.emit(Topics.ImageCreated, new ImageCreatedEvent(imageUrl, snapshot.id));
-        console.log("event emitted!");
         // This is code for remove failed planter if  success
         this.failedPlanterList = this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId !== planter.planterId);
       } catch (error) {
         if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
           this.failedPlanterList.push(planter);
-          console.log("pushed!");
         }
         this.logger.debug(error);
       }
@@ -145,7 +143,7 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
     if (imageCalculatedEvent.pixel === -1) {
       return await this.snapshotModel.findByIdAndDelete(imageCalculatedEvent.snapshotId);
     }
-    console.log(imageCalculatedEvent.pixel);
+    this.logger.debug('Num of pixel is' + imageCalculatedEvent.pixel);
     const snapshot = await this.snapshotModel.findByIdAndUpdate(imageCalculatedEvent.snapshotId, {
       numOfPixel: imageCalculatedEvent.pixel
     });

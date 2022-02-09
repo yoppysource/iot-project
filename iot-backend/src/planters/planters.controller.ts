@@ -1,5 +1,5 @@
 import { InitializeCameraDTO } from './dto/initialize-camera.dto';
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Patch, Post } from '@nestjs/common';
 import { InitializePlanterDTO } from './dto/initialize-planter.dto';
 import { PlantersService } from './planters.service';
 import { ControlService } from './control.service';
@@ -11,7 +11,9 @@ export class PlantersController {
   constructor(
     private plantersService: PlantersService,
     private controlService: ControlService,
-  ) {}
+  ) { }
+
+  private readonly logger = new Logger(PlantersService.name);
 
   @Get('/farm/:id')
   findPlantersInFarms(@Param('id') id: string) {
@@ -31,6 +33,8 @@ export class PlantersController {
   //initalize planter
   @Post()
   initializePlanter(@Body() body: InitializePlanterDTO) {
+    this.logger.debug('Planter is initialted with data' + body);
+
     return this.plantersService.createOrUpdate(body);
   }
 
@@ -40,7 +44,8 @@ export class PlantersController {
     @Param('cameraId') cameraId: string,
     @Body() body: InitializeCameraDTO,
   ) {
-    console.log(body);
+    this.logger.debug('Camera is initialted: ' + cameraId);
+
     return this.plantersService.createOrUpdateCamera(planterId, cameraId, body);
   }
 

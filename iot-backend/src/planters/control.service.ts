@@ -44,7 +44,6 @@ export class ControlService {
     const planter = await this.planterModel.findById(id);
     if (!planter) throw new NotFoundException('존재하지 않는 Planter입니다.');
     if (withSetting) {
-      console.log(withSetting);
       const [onHour, onMin] = planter.setting.turnOn.split(':');
       const [offHour, offMin] = planter.setting.turnOff.split(':');
       const now = new Date();
