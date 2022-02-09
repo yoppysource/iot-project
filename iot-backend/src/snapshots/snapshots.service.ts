@@ -69,7 +69,7 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
     if (this.failedPlanterList.length === 0) return;
     console.log(this.failedPlanterList.map((planter: Planter) => planter.planterId).join(','));
     this.logger.debug(`remaining failed planter ${this.failedPlanterList.map((planter: Planter) => planter.planterId).join(',')}`);
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 5));
     await Promise.allSettled(this.failedPlanterList.map((planter) => this.controlService.turnOn(planter.id, false)));
     await new Promise((resolve) => setTimeout(resolve, 1000));
     await Promise.allSettled(this.failedPlanterList.map((planter) => this.createSnapshot(planter)));
