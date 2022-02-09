@@ -55,9 +55,9 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
     if (!plantersIncludeCam) return this.logger.debug('카메라 달린 모듈이 DB상에 존재하지 않습니다');
 
     await Promise.allSettled(plantersIncludeCam.map((planter) => this.controlService.turnOn(planter.id, false)));
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     await Promise.allSettled(plantersIncludeCam.map((planter) => this.createSnapshot(planter)));
-    await new Promise((resolve) => setTimeout(resolve, 4000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     await Promise.allSettled(plantersIncludeCam.map((planter) => this.controlService.turnOff(planter.id, true)));
     console.log('reach to end');
     this.handleFailedPlanter(0);
@@ -85,31 +85,31 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
   }
 
   async createSnapshot(planter: Planter) {
+    try {
+      const res: AxiosResponse = await lastValueFrom(
+        this.httpService.get(planter.getUrl(['current'])),
+      );
 
-    const res: AxiosResponse = await lastValueFrom(
-      this.httpService.get(planter.getUrl(['current'])),
-    );
-
-    if (res.status != 200) {
-      this.logger.debug(`This connection of planter failed: ${planter.planterId}`);
-      if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
-        this.failedPlanterList.push(planter);
+      if (res.status != 200) {
+        this.logger.debug(`This connection of planter failed: ${planter.planterId}`);
+        if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
+          this.failedPlanterList.push(planter);
+        }
+        return;
       }
-      return;
-    }
 
-    for (const cam of planter.cameras) {
-      const snapshot = new this.snapshotModel();
-      Object.assign(snapshot, res.data);
-      snapshot.planterId = planter.planterId;
-      const current = new Date();
-      current.setHours(current.getHours() + 9);
-      snapshot.createdAt = current;
-      const imageName = `${cam.cameraId}_${current.getTime()}.jpeg`;
-      snapshot.cameraId = cam.cameraId;
-      if (cam.plantId) snapshot.plantId = cam.plantId;
-      if (cam.transferredAt) snapshot.transferredAt = cam.transferredAt;
-      try {
+      for (const cam of planter.cameras) {
+        const snapshot = new this.snapshotModel();
+        Object.assign(snapshot, res.data);
+        snapshot.planterId = planter.planterId;
+        const current = new Date();
+        current.setHours(current.getHours() + 9);
+        snapshot.createdAt = current;
+        const imageName = `${cam.cameraId}_${current.getTime()}.jpeg`;
+        snapshot.cameraId = cam.cameraId;
+        if (cam.plantId) snapshot.plantId = cam.plantId;
+        if (cam.transferredAt) snapshot.transferredAt = cam.transferredAt;
+
         const response: AxiosResponse = await this.httpService.axiosRef({
           url: `http://${cam.publicIP}:${cam.webPort}/capture`,
           method: 'GET',
@@ -133,24 +133,24 @@ export class SnapshotsService implements OnApplicationShutdown, OnModuleInit {
         this.client.emit(Topics.ImageCreated, new ImageCreatedEvent(imageUrl, snapshot.id));
         // This is code for remove failed planter if  success
         this.failedPlanterList = this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId !== planter.planterId);
-      } catch (error) {
-        if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
-          this.failedPlanterList.push(planter);
-        }
-        this.logger.debug(error);
       }
+    } catch (error) {
+      if (this.failedPlanterList.filter(failedPlanter => failedPlanter.planterId === planter.planterId).length === 0) {
+        this.failedPlanterList.push(planter);
+      }
+      this.logger.debug(error);
     }
   }
   async updateSnapshotWhenCalculated(imageCalculatedEvent: ImageCalculatedEvent) {
     if (imageCalculatedEvent.pixel === -1) {
 
       const snapshot = await this.snapshotModel.findByIdAndDelete(imageCalculatedEvent.snapshotId);
-      return this.logger.debug(`Snapshot Deleted! \n for: ${snapshot.cameraId}`);
+      return this.logger.debug(`Snapshot Deleted! for ${snapshot.cameraId}`);
     }
     const snapshot = await this.snapshotModel.findByIdAndUpdate(imageCalculatedEvent.snapshotId, {
       numOfPixel: imageCalculatedEvent.pixel
     });
-    this.logger.debug(`Num of pixel is: ${imageCalculatedEvent.pixel}\n for: ${snapshot.cameraId}`);
+    this.logger.debug(`Num of pixel is ${imageCalculatedEvent.pixel} for ${snapshot.cameraId}`);
 
   }
 }
